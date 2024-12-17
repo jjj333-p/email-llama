@@ -1,0 +1,6 @@
+.venv
+login.*
+out.*
+*.out
+db
+.idea
