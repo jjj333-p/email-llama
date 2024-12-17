@@ -144,11 +144,10 @@ while True:
                     response_message["To"] = msg["From"]
                     if msg["Subject"] is None:
                         response_message["Subject"] = "Re: "
+                    elif msg["Subject"].startswith("Re:"):
+                        response_message["Subject"] = msg["Subject"]
                     else:
-                        if msg["Subject"].startswith("Re:"):
-                            response_message["Subject"] = msg["Subject"]
-                        else:
-                            response_message["Subject"] = "Re:{msg['Subject']}"
+                        response_message["Subject"] = "Re:{msg['Subject']}"
                     response_message.attach(MIMEText(response_body, "plain"))
 
                     # send email
