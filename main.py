@@ -57,7 +57,11 @@ while True:
                 if isinstance(response, tuple):
                     msg = mailparser.parse_from_bytes(response[1])
 
-                    sender: tuple[str, str] = msg.from_
+                    # sanity checks
+                    if len(msg.from_) < 1 or len(msg.from_[0]) < 1:
+                        continue
+
+                    sender: str = msg.from_[0][1]
                     subject: str = msg.subject if msg.subject else "No subject"
                     body_lines: list[str] = []
 
