@@ -61,10 +61,12 @@ while True:
                     if len(msg.from_) < 1 or len(msg.from_[0]) < 1:
                         continue
 
+                    # parse in details
                     sender: str = msg.from_[0][1]
                     subject: str = msg.subject if msg.subject else "No subject"
                     body_lines: list[str] = []
 
+                    # rid of the replies, rely on stored content for that
                     for line in msg.text_plain[0].splitlines():
                         if login["email"].split("@")[0] in line or login["displayname"] in line or line.startswith(
                                 "> "):
