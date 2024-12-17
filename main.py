@@ -84,7 +84,7 @@ while True:
                     if filtered_body is None:
                         filtered_body = "\n".join(filtering_body[:])
 
-                    subject_by_words: list[str] = msg['Subject'].split(" ")
+                    subject_by_words: list[str] = msg['Subject'].split(" ") if "Subject" in msg else ["", "", "", "", ]
 
                     # messages will be stored by base64 hash of subject
                     if subject_by_words[0] == "Re:" or subject_by_words[0] == "re:" or subject_by_words[0] == "RE:":
