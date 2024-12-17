@@ -18,6 +18,7 @@ import email
 from time import sleep
 from ollama import chat
 from ollama import ChatResponse
+import mailparser
 
 # directory to store message history
 if not os.path.exists('./db/'):
@@ -54,43 +55,32 @@ while True:
 
                 # everything does this, i have no idea
                 if isinstance(response, tuple):
-                    msg = email.message_from_bytes(response[1])
-                    print("Subject:", msg['Subject'])
-                    print("From:", msg['From'])
-                    print("To:", msg['To'])
-                    print("Date:", msg['Date'])
-                    body: str = ""
+                    msg = mailparser.parse_from_bytes(response[1])
 
-                    # for some reason emails sent from gmail and such are in parts on the server
-                    # and you have to fetch each part
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            body += str(part.get_payload()[0])
-                    else:
-                        body = str(msg.get_payload())
+                    sender: tuple[str, str] = msg.from_
+                    subject: str = msg.subject if msg.subject else "No subject"
+                    body_lines: list[str] = []
 
-                    filtering_body: list[str] = []
-                    filtered_body: str = None
-                    for line in body.splitlines():
-
-                        # filter out quoted reply, rely on stored copy
-                        if login["displayname"].split(" ")[0] in line or login["email"] in line:
-                            filtered_body = "\n".join(filtering_body[:-1])
+                    for line in msg.text_plain[0].splitlines():
+                        if login["email"].split("@")[0] in line or login["displayname"] in line or line.startswith(
+                                "> "):
                             break
                         else:
-                            filtering_body.append(line)
+                            body_lines.append(line)
 
-                    # if there never was any quoted body we have nothing to filter out
-                    if filtered_body is None:
-                        filtered_body = "\n".join(filtering_body[:])
+                    body: str = "\r\n".join(body_lines)
 
-                    subject_by_words: list[str] = msg['Subject'].split(" ") if "Subject" in msg else ["", "", "", "", ]
+                    print("From:", sender)
+                    print("Subject:", subject)
+                    print("Body:", body)
+
+                    subject_by_words: list[str] = subject.split()
 
                     # messages will be stored by base64 hash of subject
                     if subject_by_words[0] == "Re:" or subject_by_words[0] == "re:" or subject_by_words[0] == "RE:":
                         del subject_by_words[0]
                     encoded: str = base64.urlsafe_b64encode(
-                        f'{msg["From"]} {" ".join(subject_by_words)}'.encode()).decode()
+                        f'{sender} {" ".join(subject_by_words)}'.encode()).decode()
 
                     # attempt to parse out what model to use
                     model: str = login["default_model"]
@@ -121,7 +111,7 @@ while True:
                     # add latest user prompt
                     history.append({
                         "role": "user",
-                        "content": filtered_body
+                        "content": body
                     })
 
                     # compute response
@@ -141,13 +131,11 @@ while True:
                     # create email object
                     response_message = MIMEMultipart()
                     response_message["From"] = login["email"]
-                    response_message["To"] = msg["From"]
-                    if msg["Subject"] is None:
-                        response_message["Subject"] = "Re: "
-                    elif msg["Subject"].startswith("Re:"):
-                        response_message["Subject"] = msg["Subject"]
+                    response_message["To"] = sender
+                    if subject.startswith("Re:"):
+                        response_message["Subject"] = subject
                     else:
-                        response_message["Subject"] = f"Re:{msg['Subject']}"
+                        response_message["Subject"] = f"Re:{subject}"
                     response_message.attach(MIMEText(response_body, "plain"))
 
                     # send email
