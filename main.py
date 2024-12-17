@@ -58,7 +58,7 @@ while True:
                     msg = mailparser.parse_from_bytes(response[1])
 
                     # sanity checks
-                    if len(msg.from_) < 1 or len(msg.from_[0]) < 1:
+                    if len(msg.from_) < 1 or len(msg.from_[0]) < 2:
                         continue
 
                     # parse in details
