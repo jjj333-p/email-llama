@@ -147,7 +147,7 @@ while True:
                     elif msg["Subject"].startswith("Re:"):
                         response_message["Subject"] = msg["Subject"]
                     else:
-                        response_message["Subject"] = "Re:{msg['Subject']}"
+                        response_message["Subject"] = f"Re:{msg['Subject']}"
                     response_message.attach(MIMEText(response_body, "plain"))
 
                     # send email
