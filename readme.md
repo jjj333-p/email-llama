@@ -15,6 +15,7 @@ Simple email bot to host a Llama chatbot over email
     - and `<system prompt>` is anything you want.
 - Body is your chat message to the bot. you can reply or simply send with the same subject line to continue the same
   chat
+- A hosted instance is available at [llama@this-is-an-ai.lol](mailto:llama@this-is-an-ai.lol)
 
 ## Setup instructions
 
